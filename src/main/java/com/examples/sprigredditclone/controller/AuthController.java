@@ -1,19 +1,13 @@
 package com.examples.sprigredditclone.controller;
 
+import com.examples.sprigredditclone.dto.AuthenticationResponse;
+import com.examples.sprigredditclone.dto.LoginRequest;
 import com.examples.sprigredditclone.dto.RegisterRequest;
-import com.examples.sprigredditclone.exceptions.SpringRedditException;
-import com.examples.sprigredditclone.model.User;
-import com.examples.sprigredditclone.model.VerificationToken;
-import com.examples.sprigredditclone.repository.UserRepository;
-import com.examples.sprigredditclone.repository.VerificationTokenRepository;
 import com.examples.sprigredditclone.service.AuthService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import javax.transaction.Transactional;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -36,6 +30,11 @@ public class AuthController {
         return new ResponseEntity<>("Account activated successfully,", HttpStatus.OK);
     }
 
+    @PostMapping("/login")
+    public AuthenticationResponse login(@RequestBody LoginRequest loginRequest) {
+        return authService.login(loginRequest);
+
+    }
 
 
 }

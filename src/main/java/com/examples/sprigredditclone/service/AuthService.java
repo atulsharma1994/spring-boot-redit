@@ -1,5 +1,7 @@
 package com.examples.sprigredditclone.service;
 
+import com.examples.sprigredditclone.dto.AuthenticationResponse;
+import com.examples.sprigredditclone.dto.LoginRequest;
 import com.examples.sprigredditclone.dto.RegisterRequest;
 import com.examples.sprigredditclone.exceptions.SpringRedditException;
 import com.examples.sprigredditclone.model.NotificationEmail;
@@ -7,7 +9,12 @@ import com.examples.sprigredditclone.model.User;
 import com.examples.sprigredditclone.model.VerificationToken;
 import com.examples.sprigredditclone.repository.UserRepository;
 import com.examples.sprigredditclone.repository.VerificationTokenRepository;
+import com.examples.sprigredditclone.security.JwtProvider;
 import lombok.AllArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +31,8 @@ public class AuthService {
     private final UserRepository userRepository; // Instead of autowiring using constructor injection. Good to use it.
     private final VerificationTokenRepository verificationTokenRepository;
     private final MailService mailService;
+    private final AuthenticationManager authenticationManager;
+    private final JwtProvider jwtProvider;
 
     @Transactional // Because we are interacting with relatational DB
     public void signup(RegisterRequest registerRequest) {
@@ -63,5 +72,14 @@ public class AuthService {
         User user = userRepository.findByUsername(username).orElseThrow( () -> new SpringRedditException("No user found with name =" + username));
         user.setEnabled(true);
         userRepository.save(user);
+    }
+
+    public AuthenticationResponse login(LoginRequest loginRequest) {
+        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(),
+                loginRequest.getPassword()));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        String token = jwtProvider.generateToken(authentication);
+        return new AuthenticationResponse(token, loginRequest.getUsername());
+
     }
 }
